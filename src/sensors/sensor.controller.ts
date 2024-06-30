@@ -9,11 +9,11 @@ import { ApiTags } from '@nestjs/swagger';
 export class SensorController {
   constructor(private readonly sensorService: SensorService) {}
 
-  @UseGuards(AuthGuard())
-  @Post('create')
-  async createSensor(@Body() createSensorDto: CreateSensorDto) {
-    return this.sensorService.createSensor(createSensorDto);
-  }
+  //   @UseGuards(AuthGuard())
+  //   @Post('create')
+  //   async createSensor(@Body() createSensorDto: CreateSensorDto) {
+  //     return this.sensorService.createSensor(createSensorDto);
+  //   }
 
   @Get('readings')
   async getSensorReadings() {

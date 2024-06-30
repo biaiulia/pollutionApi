@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateSensorDto } from '../dtos/create-sensor.dto';
+// import { CreateSensorDto } from '../dtos/create-sensor.dto';
 
 @Injectable()
 export class SensorDal {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createSensorDto: CreateSensorDto) {
-    return this.prisma.sensor.create({
-      data: createSensorDto,
-    });
-  }
+  //   async create(createSensorDto: CreateSensorDto) {
+  //     return this.prisma.sensor.create({
+  //       data: createSensorDto,
+  //     });
+  //   }
 
   async findAllReadings() {
     return this.prisma.sensorReading.findMany({

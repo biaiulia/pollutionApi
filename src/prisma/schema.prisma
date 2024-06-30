@@ -20,12 +20,17 @@ model User {
 }
 
 model Sensor {
-  id         String   @id @default(uuid())
-  type       String
-  originalId String
-  readings   SensorReading[]
+  id          String   @id @default(uuid())
+  type        String
+  originalId  String
+  location    String
+  latitude    Float
+  longitude   Float
+  title       String
+  readings    SensorReading[]
   subscriptions Subscription[]
 }
+
 
 model Subscription {
   id       String @id @default(uuid())

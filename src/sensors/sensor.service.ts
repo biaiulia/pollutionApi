@@ -10,9 +10,9 @@ export class SensorService {
     private readonly mqttService: MqttService,
   ) {}
 
-  async createSensor(createSensorDto: CreateSensorDto) {
-    return this.sensorDal.create(createSensorDto);
-  }
+  // async createSensor(createSensorDto: CreateSensorDto) {
+  //   return this.sensorDal.create(createSensorDto);
+  // }
 
   async getSensorReadings() {
     return this.sensorDal.findAllReadings();

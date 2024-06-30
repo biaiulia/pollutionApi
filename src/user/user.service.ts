@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { JwtService } from '@nestjs/jwt';
@@ -43,10 +44,10 @@ export class UserService {
     );
 
     const verificationToken = this.jwtService.sign({ email: user.email });
-    // await this.mailService.sendVerificationEmail(
-    //   createUser.email,
-    //   verificationToken,
-    // );
+    await this.mailService.sendVerificationEmail(
+      createUser.email,
+      verificationToken,
+    );
 
     return user;
   }
@@ -68,6 +69,10 @@ export class UserService {
 
   async findUserByEmail(email: string): Promise<User> {
     return this.userDal.findUserByEmail(email);
+  }
+
+  async findById(id: string): Promise<User> {
+    return this.userDal.findById(id);
   }
 
   async updatePassword(email: string, newPassword: string): Promise<User> {
@@ -94,5 +99,18 @@ export class UserService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async saveExpoToken(token: string): Promise<void> {
+    const decodedToken = this.jwtService.decode(token) as any;
+    const userId = decodedToken.sub;
+    if (!userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+    const user = await this.userDal.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.userDal.saveExpoToken(userId, token);
   }
 }

@@ -21,4 +21,9 @@ export class UserController {
   async createUser(@Body() createUser: CreateUserDto) {
     return this.userService.createUser(createUser);
   }
+
+  @Post('expo-token')
+  async saveExpoToken(@Body('token') token: string) {
+    return this.userService.saveExpoToken(token);
+  }
 }

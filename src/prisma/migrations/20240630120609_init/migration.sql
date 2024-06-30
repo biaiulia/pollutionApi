@@ -15,6 +15,10 @@ CREATE TABLE "Sensor" (
     "id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "originalId" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
+    "latitude" DOUBLE PRECISION NOT NULL,
+    "longitude" DOUBLE PRECISION NOT NULL,
+    "title" TEXT NOT NULL,
 
     CONSTRAINT "Sensor_pkey" PRIMARY KEY ("id")
 );
@@ -70,3 +74,7 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "SensorReading" ADD CONSTRAINT "SensorReading_sensorId_fkey" FOREIGN KEY ("sensorId") REFERENCES "Sensor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+
+

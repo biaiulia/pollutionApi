@@ -1,10 +1,11 @@
-import { SensorReading } from './sensor-reading.entity';
-import { Subscription } from './subscription.entity';
-
-export interface Sensor {
+export class Sensor {
   id: string;
   type: string;
   originalId: string;
-  readings?: SensorReading[];
-  subscriptions?: Subscription[];
+  location: string;
+  latitude: number;
+  longitude: number;
+  title: string;
+  // readings: SensorReading[];
+  // subscriptions: Subscription[];
 }

@@ -43,10 +43,30 @@ export class UserDal {
     });
   }
 
+  async findById(id: string): Promise<User> {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
   async updatePassword(email: string, newPassword: string): Promise<User> {
     return this.prisma.user.update({
       where: { email },
       data: { password: newPassword },
+    });
+  }
+
+  async saveExpoToken(userId: string, expoToken: string): Promise<User> {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { expoNotificationsApiKey: expoToken },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isEmailVerified: true,
+        expoNotificationsApiKey: true,
+      },
     });
   }
 }
