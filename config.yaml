@@ -1,0 +1,12 @@
+mqtt:
+  server: mqtt://mosquitto_broker:1883
+
+endpoints:
+  - name: mqtt
+    topic: '#'
+    type: simple
+    labels:
+      - name: topic
+        source: topic
+    value: float
+    value_path: value

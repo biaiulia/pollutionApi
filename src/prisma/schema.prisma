@@ -1,0 +1,60 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String   @id @default(uuid())
+  email                   String   @unique
+  password                String
+  role                    String
+  isEmailVerified         Boolean
+  expoNotificationsApiKey String
+  subscriptions           Subscription[]
+  notifications           Notification[]
+}
+
+model Sensor {
+  id         String   @id @default(uuid())
+  type       String
+  originalId String
+  readings   SensorReading[]
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id       String @id @default(uuid())
+  userId   String
+  sensorId String
+  user     User   @relation(fields: [userId], references: [id])
+  sensor   Sensor @relation(fields: [sensorId], references: [id])
+}
+
+model Notification {
+  id        String @id @default(uuid())
+  userId    String
+  message   String
+  dateTime  DateTime
+  isRead    Boolean
+  user      User   @relation(fields: [userId], references: [id])
+}
+
+model SensorReading {
+  id          String   @id @default(uuid())
+  dateTime    DateTime
+  PM25        Float
+  PM10        Float
+  PM1         Float
+  temperature Float
+  humidity    Float
+  pressure    Float
+  dayOfWeek   String
+  aqiLevel    String
+  sensorId    String
+  sensor      Sensor   @relation(fields: [sensorId], references: [id])
+}
