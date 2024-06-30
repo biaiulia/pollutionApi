@@ -1,39 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
-import { SensorReading } from 'src/entities/sensor-reading.entity';
+import { SensorReadingCreateDto } from '../dtos/sensor-reading-create.dto';
 
 @Injectable()
 export class SensorReadingDal {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getSensorReadings(): Promise<SensorReading[]> {
-    return this.prisma.sensorReading.findMany({
-      include: { sensor: true },
-      orderBy: { dateTime: 'desc' },
+  async create(sensorReading: SensorReadingCreateDto) {
+    return this.prisma.sensorReading.create({
+      data: sensorReading,
     });
   }
 
-  async saveSensorReading(
-    data: SensorReadingCreateDto,
-  ): Promise<SensorReading> {
-    const prismaData = {
-      dateTime: data.dateTime,
-      PM25: data.PM25,
-      PM10: data.PM10,
-      PM1: data.PM1,
-      temperature: data.temperature,
-      humidity: data.humidity,
-      pressure: data.pressure,
-      dayOfWeek: data.dayOfWeek,
-      aqiLevel: data.aqiLevel ?? '',
-      sensor: {
-        connect: { id: data.sensorId },
+  async findAll() {
+    return this.prisma.sensorReading.findMany({
+      include: {
+        sensor: true,
       },
-    };
+    });
+  }
 
-    return this.prisma.sensorReading.create({
-      data: prismaData,
+  async findBySensorId(sensorId: string) {
+    return this.prisma.sensorReading.findMany({
+      where: { sensorId },
+      include: {
+        sensor: true,
+      },
+    });
+  }
+
+  async findFirstBySensorIdAndDateTime(sensorId: string, dateTime: Date) {
+    return this.prisma.sensorReading.findFirst({
+      where: { sensorId, dateTime },
     });
   }
 }

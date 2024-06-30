@@ -1,9 +1,8 @@
-import { IsString, IsDate, IsNumber, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+// sensor-reading-create.dto.ts
+import { IsString, IsDate, IsNumber } from 'class-validator';
 
 export class SensorReadingCreateDto {
   @IsDate()
-  @Type(() => Date)
   dateTime: Date;
 
   @IsNumber()
@@ -27,9 +26,8 @@ export class SensorReadingCreateDto {
   @IsString()
   dayOfWeek: string;
 
-  @IsOptional()
   @IsString()
-  aqiLevel?: string;
+  aqiLevel: string;
 
   @IsString()
   sensorId: string;

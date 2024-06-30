@@ -1,47 +1,42 @@
-// sensor-reading.service.ts
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import { SensorReadingDal } from './sensor-reading.dal';
-import { SensorReading } from '../entities/sensor-reading.entity';
-import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
+import { AirlyService } from '../airly/airly.service';
+import { SensorTypeEnum } from 'src/enums/sensor-type.enum';
 
 @Injectable()
 export class SensorReadingService {
-  constructor(private sensorReadingDAL: SensorReadingDal) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sensorReadingDAL: SensorReadingDal,
+    private readonly airlyService: AirlyService,
+  ) {}
 
-  async getSensorReadings(): Promise<SensorReading[]> {
-    return this.sensorReadingDAL.getSensorReadings();
-  }
-
-  calculateAQI(pm25: number, pm10: number): string {
-    // Implement AQI calculation logic based on your criteria
-    // Placeholder logic here
-    if (pm25 <= 25 && pm10 <= 50) {
-      return 'Good';
-    } else if (pm25 <= 50 || pm10 <= 100) {
-      return 'Fair';
-    } else if (pm25 <= 90 || pm10 <= 250) {
-      return 'Moderate';
-    } else if (pm25 <= 180 || pm10 <= 350) {
-      return 'Poor';
-    } else {
-      return 'Very Poor';
-    }
-  }
-
-  async saveSensorData(data: SensorReadingCreateDto) {
-    return this.sensorReadingDAL.saveSensorReading({
-      sensorId: data.sensorId,
-      dateTime: new Date(data.dateTime),
-      PM25: data.PM25,
-      PM10: data.PM10,
-      PM1: data.PM1,
-      temperature: data.temperature,
-      humidity: data.humidity,
-      pressure: data.pressure,
-      dayOfWeek: new Date(data.dateTime).toLocaleDateString('en-US', {
-        weekday: 'long',
-      }),
-      aqiLevel: this.calculateAQI(data.PM25, data.PM10),
+  async getSensorReadings(sensorId: string) {
+    const sensor = await this.prisma.sensor.findUnique({
+      where: { id: sensorId },
     });
+
+    if (!sensor) {
+      throw new Error(`Sensor with ID ${sensorId} not found`);
+    }
+
+    if (sensor.type === SensorTypeEnum.AIRLY) {
+      // Check if data exists in the database
+      const existingData = await this.sensorReadingDAL.findBySensorId(sensorId);
+      if (existingData.length > 0) {
+        return existingData;
+      }
+
+      // If data doesn't exist, fetch from Airly and store it
+      const airlyData = await this.airlyService.getDataFromAirly(sensorId);
+      await this.airlyService.insertSensorData(airlyData, sensorId);
+
+      // Return the newly inserted data
+      return this.sensorReadingDAL.findBySensorId(sensorId);
+    } else {
+      // Return local sensor data
+      return this.sensorReadingDAL.findBySensorId(sensorId);
+    }
   }
 }
