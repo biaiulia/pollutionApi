@@ -1,19 +1,18 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app/app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
-
-  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Sensor API')
     .setDescription('API for managing sensors and their readings')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      { type: 'http', scheme: 'Bearer', bearerFormat: 'JWT', in: 'header' },
+      'token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

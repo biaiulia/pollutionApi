@@ -10,7 +10,7 @@ import { SensorReadingModule } from 'src/sensor-reading/sensor-reading.module';
 import { SensorModule } from 'src/sensors/sensor.module';
 import { UserModule } from 'src/user/user.module';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { Reflector } from '@nestjs/core';
+import { APP_GUARD, Reflector } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { Reflector } from '@nestjs/core';
   providers: [
     PrismaService,
     {
-      provide: 'APP_GUARD',
+      provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
     Reflector,

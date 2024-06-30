@@ -9,13 +9,14 @@ import { ConfigService } from '@nestjs/config';
 import { UserDal } from './user.dal';
 import { User } from '../entities/user.entity';
 import { MailService } from '../mail/mail.service';
+import { CreateUserDto } from 'src/dtos/create-user.dto';
 
 @Injectable()
 export class UserService {
   private salt: string;
 
   constructor(
-    private userDAL: UserDal,
+    private userDal: UserDal,
     private configService: ConfigService,
     private mailService: MailService,
     private jwtService: JwtService,
@@ -29,12 +30,23 @@ export class UserService {
     return crypto.createHash('sha256').update(saltedHash).digest('hex');
   }
 
-  async createUser(email: string, password: string): Promise<User> {
-    const hashedPassword = this.hashPassword(password);
-    const user = await this.userDAL.createUser(email, hashedPassword);
+  async createUser(createUser: CreateUserDto): Promise<User> {
+    const existingUser = await this.findUserByEmail(createUser.email);
+    if (existingUser) {
+      throw new BadRequestException('User already exists');
+    }
+    const hashedPassword = this.hashPassword(createUser.password);
+    const user = await this.userDal.createUser(
+      createUser.email,
+      hashedPassword,
+      createUser.role,
+    );
 
-    const verificationToken = this.jwtService.sign({ email });
-    await this.mailService.sendVerificationEmail(email, verificationToken);
+    const verificationToken = this.jwtService.sign({ email: user.email });
+    // await this.mailService.sendVerificationEmail(
+    //   createUser.email,
+    //   verificationToken,
+    // );
 
     return user;
   }
@@ -42,24 +54,24 @@ export class UserService {
   async verifyUser(token: string): Promise<User> {
     try {
       const { email } = this.jwtService.verify(token);
-      const user = await this.userDAL.findUserByEmail(email);
+      const user = await this.userDal.findUserByEmail(email);
 
       if (user.isEmailVerified) {
         throw new BadRequestException('User already verified');
       }
 
-      return this.userDAL.verifyUser(email);
+      return this.userDal.verifyUser(email);
     } catch (e) {
       throw new UnauthorizedException('Invalid token');
     }
   }
 
   async findUserByEmail(email: string): Promise<User> {
-    return this.userDAL.findUserByEmail(email);
+    return this.userDal.findUserByEmail(email);
   }
 
   async updatePassword(email: string, newPassword: string): Promise<User> {
-    const user = await this.userDAL.findUserByEmail(email);
+    const user = await this.userDal.findUserByEmail(email);
 
     const newHashedPassword = this.hashPassword(newPassword);
     if (user.password === newHashedPassword) {
@@ -68,11 +80,11 @@ export class UserService {
       );
     }
 
-    return this.userDAL.updatePassword(email, newHashedPassword);
+    return this.userDal.updatePassword(email, newHashedPassword);
   }
 
   async login(email: string, password: string) {
-    const user = await this.userDAL.findUserByEmail(email);
+    const user = await this.userDal.findUserByEmail(email);
 
     if (!user || this.hashPassword(password) !== user.password) {
       throw new BadRequestException('Invalid credentials');
