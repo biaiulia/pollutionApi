@@ -27,7 +27,10 @@ export class MqttService {
   }
 
   subscribeToTopics() {
-    const topics = ['notifications', 'sensor_data'];
+    const topics: mqtt.ISubscriptionMap = {
+      notifications: { qos: 2 },
+      sensor_data: { qos: 2 },
+    };
     this.client.subscribe(topics, (error, granted) => {
       if (error) {
         console.error('MQTT subscribe error:', error);
