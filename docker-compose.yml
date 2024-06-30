@@ -21,10 +21,11 @@ services:
       - '1883:1883' # MQTT
       - '8883:8883' # MQTT over TLS
     volumes:
-      - mosquitto_config:/mosquitto/config
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/config/mosquitto.acl:/mosquitto/config/mosquitto.acl
+      - ./mosquitto/certs:/mosquitto/certs
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-      - ./certs:/mosquitto/certs # Mount the directory with your TLS certificates
     restart: unless-stopped
 
   redis:
@@ -38,7 +39,6 @@ services:
 
 volumes:
   postgres_data:
-  mosquitto_config:
   mosquitto_data:
   mosquitto_log:
   redis_data:

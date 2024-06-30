@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SensorReadingCreateDto } from '../dtos/sensor-reading-create.dto';
+import { SensorReading } from 'src/entities/sensor-reading.entity';
 
 @Injectable()
 export class SensorReadingDal {
@@ -20,7 +21,7 @@ export class SensorReadingDal {
     });
   }
 
-  async findBySensorId(sensorId: string) {
+  async findBySensorId(sensorId: string): Promise<SensorReading[]> {
     return this.prisma.sensorReading.findMany({
       where: { sensorId },
       include: {

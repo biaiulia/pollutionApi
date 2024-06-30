@@ -4,11 +4,15 @@ import { SensorReadingController } from './sensor-reading.controller';
 import { SensorReadingDal } from './sensor-reading.dal';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AirlyModule } from '../airly/airly.module';
+import { SensorService } from 'src/sensors/sensor.service';
+import { GlobalCacheModule } from 'src/redis/global-cache.module';
+import { SensorDal } from 'src/sensors/sensor.dal';
+import { MqttModule } from 'src/mqtt/mqtt.module';
 
 @Module({
-  imports: [PrismaModule, AirlyModule],
+  imports: [PrismaModule, AirlyModule, GlobalCacheModule, MqttModule],
   controllers: [SensorReadingController],
-  providers: [SensorReadingService, SensorReadingDal],
+  providers: [SensorReadingService, SensorReadingDal, SensorService, SensorDal],
   exports: [SensorReadingService],
 })
 export class SensorReadingModule {}

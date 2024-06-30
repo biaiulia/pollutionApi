@@ -10,13 +10,13 @@ export class MqttService {
     this.client = mqtt.connect('mqtt://localhost:1883');
   }
 
-  publish(topic: string, message: string) {
-    this.client.publish(topic, message, {}, (error) => {
-      if (error) {
-        console.error('MQTT publish error:', error);
-      }
-    });
-  }
+  //   publish(topic: string, message: string) {
+  //     this.client.publish(topic, message, {}, (error) => {
+  //       if (error) {
+  //         console.error('MQTT publish error:', error);
+  //       }
+  //     });
+  //   }
 
   subscribe(topic: string, callback: (topic: string, message: Buffer) => void) {
     this.client.subscribe(topic, (error) => {
