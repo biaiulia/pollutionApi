@@ -1,6 +1,10 @@
-export function isLatestAirlyReading(airlyReadingDate: Date): boolean {
+export function isLatestAirlyReading(airlyReadingDate: string): boolean {
   if (!airlyReadingDate) {
     return false;
+  }
+  const airlyDate = new Date(airlyReadingDate);
+  if (isNaN(airlyDate.getTime())) {
+    throw new Error('Invalid date format');
   }
   const currentDate = new Date();
   const currentYear = currentDate.getUTCFullYear();
@@ -8,10 +12,10 @@ export function isLatestAirlyReading(airlyReadingDate: Date): boolean {
   const currentDay = currentDate.getUTCDate();
   const currentHour = currentDate.getUTCHours();
 
-  const airlyYear = airlyReadingDate.getUTCFullYear();
-  const airlyMonth = airlyReadingDate.getUTCMonth();
-  const airlyDay = airlyReadingDate.getUTCDate();
-  const airlyHour = airlyReadingDate.getUTCHours();
+  const airlyYear = airlyDate.getUTCFullYear();
+  const airlyMonth = airlyDate.getUTCMonth();
+  const airlyDay = airlyDate.getUTCDate();
+  const airlyHour = airlyDate.getUTCHours();
 
   return (
     currentYear === airlyYear &&

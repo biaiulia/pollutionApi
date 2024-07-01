@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SensorReadingDal } from './sensor-reading.dal';
 import { AirlyService } from '../airly/airly.service';
 import { SensorTypeEnum } from 'src/enums/sensor-type.enum';
@@ -51,7 +55,7 @@ export class SensorReadingService {
     if (sensor.type === SensorTypeEnum.AIRLY) {
       if (
         !latestCachedReading ||
-        !isLatestAirlyReading(latestCachedReading.dateTime)
+        !isLatestAirlyReading(latestCachedReading.dateTime.toString())
       ) {
         const airlyData = await this.airlyService.getDataFromAirly(sensorId);
 
@@ -80,6 +84,15 @@ export class SensorReadingService {
         return createdSensorReading;
       }
     }
+
+    if (!latestCachedReading) {
+      const latestReading =
+        await this.sensorReadingDal.getLatestReading(sensorId);
+      if (latestReading) {
+        this.cachingService.set<SensorReading>(cachingKey, latestReading, 3600);
+      }
+      return latestReading;
+    }
     return latestCachedReading;
   }
 
@@ -96,24 +109,13 @@ export class SensorReadingService {
   }
 
   async createSensorReading(sensorReading: SensorReadingCreateDto) {
-    return this.sensorReadingDal.create(sensorReading);
+    const createdSensorReading =
+      await this.sensorReadingDal.create(sensorReading);
+    if (!sensorReading) {
+      throw new BadRequestException(
+        `Could not add reading for sensor with id ${sensorReading.sensorId} for date ${sensorReading.dateTime}`,
+      );
+    }
+    return createdSensorReading;
   }
-  // async sensorReadingExists(sensorId: string, dateTime: Date) {
-  //   const startOfHour = new Date(dateTime);
-  //   startOfHour.setMinutes(0, 0, 0);
-  //   const endOfHour = new Date(startOfHour);
-  //   endOfHour.setHours(startOfHour.getHours() + 1);
-
-  //   const existingReading = await this.sensorReadingDal.findFirst({
-  //     where: {
-  //       sensorId,
-  //       dateTime: {
-  //         gte: startOfHour,
-  //         lt: endOfHour,
-  //       },
-  //     },
-  //   });
-
-  //   return existingReading;
-  // }
 }

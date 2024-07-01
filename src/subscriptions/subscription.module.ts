@@ -9,6 +9,6 @@ import { SensorModule } from 'src/sensors/sensor.module';
   imports: [PrismaModule, SensorModule],
   controllers: [SubscriptionController],
   providers: [SubscriptionService, SubscriptionDal],
-  exports: [SubscriptionService],
+  exports: [SubscriptionService, SubscriptionDal],
 })
 export class SubscriptionModule {}

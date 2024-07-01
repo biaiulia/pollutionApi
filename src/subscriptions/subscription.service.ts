@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { SubscriptionDal } from './subscription.dal';
 import { Subscription } from '../entities/subscription.entity';
 import { SensorService } from 'src/sensors/sensor.service';
@@ -11,14 +15,22 @@ export class SubscriptionService {
   ) {}
 
   async subscribe(userId: string, sensorId: string): Promise<Subscription> {
+    // if (this.checkIfUserIsSubscribed(userId, sensorId)) {
+    //   throw new BadRequestException(
+    //     `User with id ${userId} already subscribed to the sensor with id ${sensorId}`,
+    //   );
+    // }
     const sensor = await this.getSensor(sensorId);
-
     return this.subscriptionDal.subscribe(userId, sensor.id);
   }
 
   async unsubscribe(userId: string, sensorId: string): Promise<void> {
     const sensor = await this.getSensor(sensorId);
-
+    // if (!this.checkIfUserIsSubscribed(userId, sensorId)) {
+    //   throw new BadRequestException(
+    //     `User with id ${userId} is not subscribed to sensor with id ${sensorId}`,
+    //   );
+    // }
     await this.subscriptionDal.unsubscribe(userId, sensor.id);
   }
 
@@ -39,10 +51,15 @@ export class SubscriptionService {
     return sensor;
   }
 
-  // async updateUserExpoPushToken(
-  //   userId: string,
-  //   expoPushToken: string,
-  // ): Promise<void> {
-  //   await this.userDAL.updateExpoPushToken(userId, expoPushToken);
-  // }
+  async checkIfUserIsSubscribed(
+    sensorId: string,
+    userId: string,
+  ): Promise<boolean> {
+    console.log(this.subscriptionDal.isSubscribed(sensorId, userId));
+    const subscription = await this.subscriptionDal.isSubscribed(
+      sensorId,
+      userId,
+    );
+    return !!subscription;
+  }
 }

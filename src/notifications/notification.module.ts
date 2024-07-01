@@ -4,9 +4,10 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { NotificationController } from './notification.controller';
 import { NotificationDal } from './notification.dal';
 import { ExpoService } from './expo.service';
+import { SubscriptionModule } from 'src/subscriptions/subscription.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, SubscriptionModule],
   controllers: [NotificationController],
   providers: [NotificationService, NotificationDal, ExpoService],
   exports: [NotificationService],

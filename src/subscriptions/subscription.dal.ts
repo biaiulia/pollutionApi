@@ -37,4 +37,10 @@ export class SubscriptionDal {
       include: { user: true },
     });
   }
+
+  async isSubscribed(sensorId: string, userId: string): Promise<Subscription> {
+    return this.prisma.subscription.findFirst({
+      where: { userId, sensorId },
+    });
+  }
 }
