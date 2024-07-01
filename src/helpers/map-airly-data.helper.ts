@@ -25,9 +25,6 @@ export function mapRawDataToSensorReading(
   rawData: any[],
   date: Date,
 ): SensorReadingCreateDto {
-  //   console.log(rawData);
-  //   console.log(date);
-  //   console.log(date.getUTCDay());
   const mappedData: Partial<SensorReadingCreateDto> = {
     sensorId,
     dateTime: date,

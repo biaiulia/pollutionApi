@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import { MqttClient } from 'mqtt';
 import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
 import { MqttTopicsEnum } from 'src/enums/mqtt-topics.enum';
 import { NotificationService } from 'src/notifications/notification.service';
+import { SensorReadingService } from 'src/sensor-reading/sensor-reading.service';
 
 /* when mqtt service pushes the mqtt data because data change flow:
   1. add sensor readings in db and invalidate redis cache add the new one
@@ -14,7 +15,11 @@ import { NotificationService } from 'src/notifications/notification.service';
 export class MqttService {
   private client: MqttClient;
 
-  constructor(private readonly notificationService: NotificationService) {
+  constructor(
+    private readonly notificationService: NotificationService,
+    private readonly sensorReadingService: SensorReadingService,
+    private readonly logger: Logger,
+  ) {
     this.client = mqtt.connect('mqtts://localhost:8883', {
       // Update with your actual paths and settings
       ca: process.env.MQTT_CA_CERT,
@@ -45,33 +50,61 @@ export class MqttService {
         return;
       }
       granted.forEach((grant) => {
-        console.log(`Subscribed to ${grant.topic} with QoS ${grant.qos}`);
+        this.logger.log(`Subscribed to ${grant.topic} with QoS ${grant.qos}`);
       });
     });
 
     this.client.on('message', (topic, message) => {
-      console.log(
-        `Message received: Topic: ${topic}, Message: ${message.toString()}`,
-      );
+      this.logger.log(`Message received: Topic: ${topic}`);
       this.handleMessage(topic, message);
     });
   }
 
   private handleMessage(topic: string, message: Buffer) {
-    if (topic === MqttTopicsEnum.NOTIFICATIONS) {
-    } else if (topic === MqttTopicsEnum.POLLUTION_DATA) {
-      console.log(message);
+    const messageString = message.toString();
+    try {
+      const parsedData = JSON.parse(messageString);
+      if (!parsedData) {
+        throw new BadRequestException(`Empty mqtt message on topic ${topic}`);
+      }
+      if (topic === MqttTopicsEnum.NOTIFICATIONS) {
+        this.handleNotificationMessage(parsedData);
+      } else if (topic === MqttTopicsEnum.POLLUTION_DATA) {
+        this.handlePollutionDataMessage(parsedData);
+      }
+    } catch (error) {
+      this.logger.error('Failed to parse message payload:', error);
     }
-    //   const payload = message.toString();
-    //   console.log(payload);
-    //   try {
-    //     const data: SensorReadingCreateDto = JSON.parse(payload);
+  }
 
-    //     this.notificationService.sendNotification(data);
-    //     console.log('Handled notifications:', payload);
-    //   } catch (error) {
-    //     console.error('Failed to parse message payload:', error);
-    //   }
-    // }
+  private handleNotificationMessage(parsedData: { message: string; data }) {
+    const { message, data } = parsedData;
+    if (message && data) {
+      // Handle the notification message, e.g., log it or send a notification
+      this.logger.log('Notification received:', message, data);
+      // Implement your notification handling logic here
+      this.notificationService.sendNotification(message, data);
+    } else {
+      this.logger.error('Invalid notification message format');
+    }
+  }
+
+  private async handlePollutionDataMessage(parsedData: {
+    message: string;
+    data;
+  }) {
+    try {
+      await Promise.all(
+        parsedData.data.map((reading) =>
+          this.sensorReadingService.createSensorReading({
+            ...reading,
+            dateTime: new Date(reading.dateTime),
+            sensorId: 'edge1',
+          } as SensorReadingCreateDto),
+        ),
+      );
+    } catch (error) {
+      this.logger.error('Failed to parse pollution data payload:', error);
+    }
   }
 }

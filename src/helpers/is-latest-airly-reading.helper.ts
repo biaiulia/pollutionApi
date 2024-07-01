@@ -3,7 +3,6 @@ export function isLatestAirlyReading(airlyReadingDate: Date): boolean {
     return false;
   }
   const currentDate = new Date();
-  console.log(currentDate, airlyReadingDate);
   const currentYear = currentDate.getUTCFullYear();
   const currentMonth = currentDate.getUTCMonth();
   const currentDay = currentDate.getUTCDate();

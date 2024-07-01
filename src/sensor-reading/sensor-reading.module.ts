@@ -7,11 +7,10 @@ import { AirlyModule } from '../airly/airly.module';
 import { SensorService } from 'src/sensors/sensor.service';
 import { GlobalCacheModule } from 'src/redis/global-cache.module';
 import { SensorDal } from 'src/sensors/sensor.dal';
-import { MqttModule } from 'src/mqtt/mqtt.module';
 import { CachingService } from 'src/redis/caching.service';
 
 @Module({
-  imports: [PrismaModule, AirlyModule, GlobalCacheModule, MqttModule],
+  imports: [PrismaModule, AirlyModule, GlobalCacheModule],
   controllers: [SensorReadingController],
   providers: [
     SensorReadingService,

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { SensorReadingDal } from './sensor-reading.dal';
 import { AirlyService } from '../airly/airly.service';
 import { SensorTypeEnum } from 'src/enums/sensor-type.enum';
