@@ -30,4 +30,11 @@ export class SubscriptionDal {
       include: { sensor: true },
     });
   }
+
+  async getUsersSubscribedToSensor(sensorId: string) {
+    return this.prisma.subscription.findMany({
+      where: { sensorId: sensorId },
+      include: { user: true },
+    });
+  }
 }

@@ -14,7 +14,7 @@ model User {
   password                String
   role                    String
   isEmailVerified         Boolean
-  expoNotificationsApiKey String
+  expoNotificationsApiKey String?
   subscriptions           Subscription[]
   notifications           Notification[]
 }
@@ -52,14 +52,14 @@ model Notification {
 model SensorReading {
   id          String   @id @default(uuid())
   dateTime    DateTime
-  PM25        Float
-  PM10        Float
-  PM1         Float
-  temperature Float
-  humidity    Float
-  pressure    Float
+  PM25        Float?
+  PM10        Float?
+  PM1         Float?
+  temperature Float?
+  humidity    Float?
+  pressure    Float?
   dayOfWeek   String
-  aqiLevel    String
+  aqiLevel    String?
   sensorId    String
   sensor      Sensor   @relation(fields: [sensorId], references: [id])
 }

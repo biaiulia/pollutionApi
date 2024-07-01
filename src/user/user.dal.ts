@@ -2,38 +2,34 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from 'src/entities/user.entity';
 import { UserRoleEnum } from 'src/enums/user-role.enum';
+import { USER_SELECTOR } from './user.selector';
 
 @Injectable()
 export class UserDal {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(
-    email: string,
-    password: string,
-    role: UserRoleEnum,
-  ): Promise<User> {
+  async createUser(email: string, password: string): Promise<Partial<User>> {
     return this.prisma.user.create({
       data: {
         email,
         password,
-        role,
+        role: UserRoleEnum.USER,
         isEmailVerified: false,
         expoNotificationsApiKey: '',
       },
       select: {
-        id: true,
-        email: true,
-        role: true,
-        isEmailVerified: true,
-        expoNotificationsApiKey: true,
+        ...USER_SELECTOR,
       },
     });
   }
 
-  async verifyUser(email: string): Promise<User> {
+  async verifyUser(email: string): Promise<Partial<User>> {
     return this.prisma.user.update({
       where: { email },
       data: { isEmailVerified: true },
+      select: {
+        ...USER_SELECTOR,
+      },
     });
   }
 
@@ -43,29 +39,46 @@ export class UserDal {
     });
   }
 
-  async findById(id: string): Promise<User> {
+  async findLoginUser(email: string, password: string): Promise<Partial<User>> {
     return this.prisma.user.findUnique({
-      where: { id },
+      where: { email, password },
+      select: {
+        ...USER_SELECTOR,
+      },
     });
   }
 
-  async updatePassword(email: string, newPassword: string): Promise<User> {
+  async findById(id: string): Promise<Partial<User>> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        ...USER_SELECTOR,
+      },
+    });
+  }
+
+  async updatePassword(
+    email: string,
+    newPassword: string,
+  ): Promise<Partial<User>> {
     return this.prisma.user.update({
       where: { email },
       data: { password: newPassword },
+      select: {
+        ...USER_SELECTOR,
+      },
     });
   }
 
-  async saveExpoToken(userId: string, expoToken: string): Promise<User> {
+  async saveExpoToken(
+    userId: string,
+    expoToken: string,
+  ): Promise<Partial<User>> {
     return this.prisma.user.update({
       where: { id: userId },
       data: { expoNotificationsApiKey: expoToken },
       select: {
-        id: true,
-        email: true,
-        role: true,
-        isEmailVerified: true,
-        expoNotificationsApiKey: true,
+        ...USER_SELECTOR,
       },
     });
   }

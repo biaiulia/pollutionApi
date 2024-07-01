@@ -1,35 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { Expo, ExpoPushMessage } from 'expo-server-sdk';
+import { PrismaService } from '../prisma/prisma.service';
+import { ExpoService } from './expo.service';
+import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
 
 @Injectable()
 export class NotificationService {
-  private expo: Expo;
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly expoService: ExpoService,
+  ) {}
 
-  constructor(private prisma: PrismaService) {
-    this.expo = new Expo();
-  }
-
-  async sendNotification(data: any) {
+  async sendNotification(data: SensorReadingCreateDto) {
     const subscriptions = await this.prisma.subscription.findMany({
       where: { sensorId: data.sensorId },
       include: { user: true },
     });
 
-    const messages: ExpoPushMessage[] = subscriptions.map((subscription) => ({
-      to: subscription.user.expoNotificationsApiKey,
-      sound: 'default',
-      body: `New reading for sensor ${data.sensorId}: ${data.reading}`,
-      data: { withSome: 'data' },
-    }));
+    for (const subscription of subscriptions) {
+      const message = `New reading for sensor ${data.sensorId}: AQI level is ${data.aqiLevel}`;
+      const token = subscription.user.expoNotificationsApiKey;
 
-    const chunks = this.expo.chunkPushNotifications(messages);
-    for (const chunk of chunks) {
-      try {
-        await this.expo.sendPushNotificationsAsync(chunk);
-      } catch (error) {
-        console.error(error);
-      }
+      await this.expoService.sendPushNotification(token, message, {
+        sensorId: data.sensorId,
+        aqiLevel: data.aqiLevel,
+      });
     }
   }
 }

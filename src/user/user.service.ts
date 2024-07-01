@@ -31,7 +31,7 @@ export class UserService {
     return crypto.createHash('sha256').update(saltedHash).digest('hex');
   }
 
-  async createUser(createUser: CreateUserDto): Promise<User> {
+  async createUser(createUser: CreateUserDto): Promise<Partial<User>> {
     const existingUser = await this.findUserByEmail(createUser.email);
     if (existingUser) {
       throw new BadRequestException('User already exists');
@@ -40,7 +40,6 @@ export class UserService {
     const user = await this.userDal.createUser(
       createUser.email,
       hashedPassword,
-      createUser.role,
     );
 
     const verificationToken = this.jwtService.sign({ email: user.email });
@@ -52,7 +51,7 @@ export class UserService {
     return user;
   }
 
-  async verifyUser(token: string): Promise<User> {
+  async verifyUser(token: string): Promise<Partial<User>> {
     try {
       const { email } = this.jwtService.verify(token);
       const user = await this.userDal.findUserByEmail(email);
@@ -67,15 +66,18 @@ export class UserService {
     }
   }
 
-  async findUserByEmail(email: string): Promise<User> {
+  async findUserByEmail(email: string): Promise<Partial<User>> {
     return this.userDal.findUserByEmail(email);
   }
 
-  async findById(id: string): Promise<User> {
+  async findById(id: string): Promise<Partial<User>> {
     return this.userDal.findById(id);
   }
 
-  async updatePassword(email: string, newPassword: string): Promise<User> {
+  async updatePassword(
+    email: string,
+    newPassword: string,
+  ): Promise<Partial<User>> {
     const user = await this.userDal.findUserByEmail(email);
 
     const newHashedPassword = this.hashPassword(newPassword);
@@ -89,9 +91,12 @@ export class UserService {
   }
 
   async login(email: string, password: string) {
-    const user = await this.userDal.findUserByEmail(email);
+    const user = await this.userDal.findLoginUser(
+      email,
+      this.hashPassword(password),
+    );
 
-    if (!user || this.hashPassword(password) !== user.password) {
+    if (!user) {
       throw new BadRequestException('Invalid credentials');
     }
 
@@ -102,7 +107,7 @@ export class UserService {
   }
 
   async saveExpoToken(token: string): Promise<void> {
-    const decodedToken = this.jwtService.decode(token) as any;
+    const decodedToken = this.jwtService.decode(token);
     const userId = decodedToken.sub;
     if (!userId) {
       throw new UnauthorizedException('Invalid token');

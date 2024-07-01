@@ -1,4 +1,3 @@
-// expo.service.ts
 import { Injectable } from '@nestjs/common';
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 
@@ -25,7 +24,7 @@ export class ExpoService {
       try {
         await this.expo.sendPushNotificationsAsync(chunk);
       } catch (error) {
-        console.error(error);
+        console.error('Error sending push notification:', error);
       }
     }
   }

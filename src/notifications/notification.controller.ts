@@ -7,8 +7,8 @@ import { ApiTags } from '@nestjs/swagger';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Post('send')
-  async sendNotification(@Body() data: any) {
-    return this.notificationService.sendNotification(data);
-  }
+  // @Post('send')
+  // async sendNotification(@Body() data: any) {
+  //   return this.notificationService.sendNotification(data);
+  // }
 }

@@ -1,12 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import { MqttClient } from 'mqtt';
+import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
+import { MqttTopicsEnum } from 'src/enums/mqtt-topics.enum';
+import { NotificationService } from 'src/notifications/notification.service';
+
+/* when mqtt service pushes the mqtt data because data change flow:
+  1. add sensor readings in db and invalidate redis cache add the new one
+  2. send notification
+  */
 
 @Injectable()
 export class MqttService {
   private client: MqttClient;
 
-  constructor() {
+  constructor(private readonly notificationService: NotificationService) {
     this.client = mqtt.connect('mqtts://localhost:8883', {
       // Update with your actual paths and settings
       ca: process.env.MQTT_CA_CERT,
@@ -50,23 +58,16 @@ export class MqttService {
   }
 
   private handleMessage(topic: string, message: Buffer) {
-    // Handle the incoming message based on the topic
-    if (topic === 'notifications') {
-      this.handleNotifications(message);
-    } else if (topic === 'sensor_data') {
-      this.handleSensorData(message);
-    }
-  }
+    if(topic === MqttTopicsEnum.NOTIFICATIONS){
+  //   const payload = message.toString();
+  //   console.log(payload);
+  //   try {
+  //     const data: SensorReadingCreateDto = JSON.parse(payload);
 
-  private handleNotifications(message: Buffer) {
-    const payload = message.toString();
-    console.log('Handling notifications:', payload);
-    // Add your notification handling logic here
-  }
-
-  private handleSensorData(message: Buffer) {
-    const payload = message.toString();
-    console.log('Handling sensor data:', payload);
-    // Add your sensor data handling logic here
-  }
+  //     this.notificationService.sendNotification(data);
+  //     console.log('Handled notifications:', payload);
+  //   } catch (error) {
+  //     console.error('Failed to parse message payload:', error);
+  //   }
+  // }
 }

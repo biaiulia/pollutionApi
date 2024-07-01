@@ -1,33 +1,40 @@
-// sensor-reading-create.dto.ts
-import { IsString, IsDate, IsNumber } from 'class-validator';
+import { IsString, IsDate, IsNumber, IsOptional } from 'class-validator';
 
 export class SensorReadingCreateDto {
   @IsDate()
   dateTime: Date;
 
+  @IsOptional()
   @IsNumber()
-  PM25: number;
+  PM25?: number;
 
+  @IsOptional()
   @IsNumber()
-  PM10: number;
+  PM10?: number;
 
+  @IsOptional()
   @IsNumber()
-  PM1: number;
+  PM1?: number;
 
+  @IsOptional()
   @IsNumber()
-  temperature: number;
+  temperature?: number;
 
+  @IsOptional()
   @IsNumber()
-  humidity: number;
+  humidity?: number;
 
+  @IsOptional()
   @IsNumber()
-  pressure: number;
+  pressure?: number;
 
+  @IsOptional()
   @IsString()
-  dayOfWeek: string;
+  dayOfWeek?: string;
 
+  @IsOptional()
   @IsString()
-  aqiLevel: string;
+  aqiLevel?: string;
 
   @IsString()
   sensorId: string;

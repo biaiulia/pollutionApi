@@ -1,13 +1,24 @@
-import { Controller, Get, Param, Post, Body, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get } from '@nestjs/common';
 import { SensorService } from './sensor.service';
-import { CreateSensorDto } from '../dtos/create-sensor.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('sensor')
-@Controller('sensor')
+/* get sensors with locations and last reading, if the type is airly:
+  1. check redis
+  2. check db
+  3. if not get from airly
+  4. add to db add to redis
+  5. return to FE: sensor {readings}
+  */
+@ApiBearerAuth('token')
+@ApiTags('sensors')
+@Controller('sensors')
 export class SensorController {
   constructor(private readonly sensorService: SensorService) {}
+
+  @Get()
+  async getSensors() {
+    return this.sensorService.getSensors();
+  }
 
   //   @UseGuards(AuthGuard())
   //   @Post('create')
@@ -15,13 +26,13 @@ export class SensorController {
   //     return this.sensorService.createSensor(createSensorDto);
   //   }
 
-  @Get('readings')
-  async getSensorReadings() {
-    return this.sensorService.getSensorReadings();
-  }
+  // @Get('readings')
+  // async getSensorReadings() {
+  //   return this.sensorService.getSensorReadings();
+  // }
 
-  @Get('readings/:sensorId')
-  async getSensorReadingsBySensorId(@Param('sensorId') sensorId: string) {
-    return this.sensorService.getSensorReadingsBySensorId(sensorId);
-  }
+  // @Get('readings/:sensorId')
+  // async getSensorReadingsBySensorId(@Param('sensorId') sensorId: string) {
+  //   return this.sensorService.getSensorReadingsBySensorId(sensorId);
+  // }
 }

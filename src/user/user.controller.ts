@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/dtos/create-user.dto';
@@ -20,6 +20,12 @@ export class UserController {
   @Post('create')
   async createUser(@Body() createUser: CreateUserDto) {
     return this.userService.createUser(createUser);
+  }
+
+  @Public()
+  @Post('verify-user')
+  async validateUser(@Query('token') token: string) {
+    return this.userService.verifyUser(token);
   }
 
   @Post('expo-token')
