@@ -1,19 +1,25 @@
-// subscription.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { SubscriptionDal } from './subscription.dal';
 import { Subscription } from '../entities/subscription.entity';
-import { User } from 'src/entities/user.entity';
+import { SensorService } from 'src/sensors/sensor.service';
 
 @Injectable()
 export class SubscriptionService {
-  constructor(private subscriptionDal: SubscriptionDal) {}
+  constructor(
+    private subscriptionDal: SubscriptionDal,
+    private readonly sensorService: SensorService,
+  ) {}
 
   async subscribe(userId: string, sensorId: string): Promise<Subscription> {
-    return this.subscriptionDal.subscribe(userId, sensorId);
+    const sensor = await this.getSensor(sensorId);
+
+    return this.subscriptionDal.subscribe(userId, sensor.id);
   }
 
   async unsubscribe(userId: string, sensorId: string): Promise<void> {
-    await this.subscriptionDal.unsubscribe(userId, sensorId);
+    const sensor = await this.getSensor(sensorId);
+
+    await this.subscriptionDal.unsubscribe(userId, sensor.id);
   }
 
   async getUserSubscriptions(userId: string): Promise<Subscription[]> {
@@ -21,7 +27,16 @@ export class SubscriptionService {
   }
 
   async getUsersSubscribedToSensor(sensorId: string) {
-    return this.subscriptionDal.getUsersSubscribedToSensor(sensorId);
+    const sensor = await this.getSensor(sensorId);
+    return this.subscriptionDal.getUsersSubscribedToSensor(sensor.id);
+  }
+
+  async getSensor(sensorId: string) {
+    const sensor = await this.sensorService.getSensor(sensorId);
+    if (!sensor) {
+      throw new NotFoundException();
+    }
+    return sensor;
   }
 
   // async updateUserExpoPushToken(

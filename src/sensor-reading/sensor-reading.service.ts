@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SensorReadingDal } from './sensor-reading.dal';
 import { AirlyService } from '../airly/airly.service';
 import { SensorTypeEnum } from 'src/enums/sensor-type.enum';
@@ -7,6 +11,8 @@ import { SensorReadingQueryParams } from 'src/dtos/sensor-reading-query-params.d
 import { isLatestAirlyReading } from 'src/helpers/is-latest-airly-reading.helper';
 import { mapRawDataToSensorReading } from 'src/helpers/map-airly-data.helper';
 import { CachingService } from 'src/redis/caching.service';
+import { SensorReading } from 'src/entities/sensor-reading.entity';
+import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
 
 @Injectable()
 export class SensorReadingService {
@@ -36,21 +42,23 @@ export class SensorReadingService {
   
 
   /* add somewhere where you can see the historical data in the FE, get all sensor readings by day */
+  //TODO: change naming to handle latestSensor reading
   async getLatestSensorReading(sensorId: string) {
     const sensor = await this.sensorService.getSensor(sensorId);
-
     if (!sensor) {
       throw new NotFoundException(`Sensor with ID ${sensorId} not found`);
     }
-    const latestReading =
-      await this.sensorReadingDal.getLatestReading(sensorId);
+    const cachingKey = `sensor-reading:${sensorId}:latest`;
+    const latestCachedReading =
+      await this.cachingService.get<SensorReading>(cachingKey);
 
     if (sensor.type === SensorTypeEnum.AIRLY) {
-      if (!isLatestAirlyReading(latestReading.dateTime)) {
+      if (
+        !latestCachedReading ||
+        !isLatestAirlyReading(latestCachedReading.dateTime)
+      ) {
         const airlyData = await this.airlyService.getDataFromAirly(sensorId);
 
-        console.log(airlyData);
-        console.log(airlyData.current);
         if (!airlyData.current || !airlyData.current.values.length) {
           throw new NotFoundException(
             `Data for sensor with id ${sensorId} not found`,
@@ -62,10 +70,21 @@ export class SensorReadingService {
           airlyData.current.values,
           airlyData.current.tillDateTime ?? airlyData.current.fromDateTime,
         );
-        return await this.sensorReadingDal.create(mappedData);
+        const createdSensorReading =
+          await this.sensorReadingDal.create(mappedData);
+        if (!createdSensorReading) {
+          console.error('couldn`t create');
+        }
+
+        await this.cachingService.set<SensorReading>(
+          cachingKey,
+          createdSensorReading,
+        );
+
+        return createdSensorReading;
       }
     }
-    return latestReading;
+    return latestCachedReading;
   }
 
   async getSensorReadings(
@@ -80,6 +99,9 @@ export class SensorReadingService {
     return this.sensorReadingDal.getReadingsBySensorId(sensorId, queryParams);
   }
 
+  async createSensorReading(sensorReading: SensorReadingCreateDto) {
+    return this.sensorReadingDal.create(sensorReading);
+  }
   // async sensorReadingExists(sensorId: string, dateTime: Date) {
   //   const startOfHour = new Date(dateTime);
   //   startOfHour.setMinutes(0, 0, 0);

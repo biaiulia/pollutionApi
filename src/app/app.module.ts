@@ -11,7 +11,7 @@ import { UserModule } from 'src/user/user.module';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { SensorModule } from 'src/sensors/sensor.module';
-import { GlobalCacheModule } from 'src/redis/global-cache.module';
+import { SubscriptionModule } from 'src/subscriptions/subscription.module';
 
 @Module({
   imports: [
@@ -27,6 +27,7 @@ import { GlobalCacheModule } from 'src/redis/global-cache.module';
     SensorReadingModule,
     SensorModule,
     MqttModule,
+    SubscriptionModule,
   ],
   providers: [
     PrismaService,

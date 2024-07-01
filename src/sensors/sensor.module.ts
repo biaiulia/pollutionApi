@@ -6,6 +6,7 @@ import { SensorDal } from './sensor.dal';
 import { MqttModule } from '../mqtt/mqtt.module';
 import { AuthModule } from 'src/auth/auth.module';
 import { GlobalCacheModule } from 'src/redis/global-cache.module';
+// import { SensorReadingModule } from 'src/sensor-reading/sensor-reading.module';
 
 @Module({
   imports: [PrismaModule, MqttModule, AuthModule, GlobalCacheModule],

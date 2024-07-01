@@ -6,6 +6,7 @@ export class Sensor {
   latitude: number;
   longitude: number;
   title: string;
+  color?: string;
   // readings: SensorReading[];
   // subscriptions: Subscription[];
 }

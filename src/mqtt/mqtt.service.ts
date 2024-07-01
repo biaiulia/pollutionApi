@@ -37,7 +37,7 @@ export class MqttService {
   subscribeToTopics() {
     const topics: mqtt.ISubscriptionMap = {
       notifications: { qos: 2 },
-      sensor_data: { qos: 2 },
+      pollution_data: { qos: 2 },
     };
     this.client.subscribe(topics, (error, granted) => {
       if (error) {
@@ -58,16 +58,20 @@ export class MqttService {
   }
 
   private handleMessage(topic: string, message: Buffer) {
-    if(topic === MqttTopicsEnum.NOTIFICATIONS){
-  //   const payload = message.toString();
-  //   console.log(payload);
-  //   try {
-  //     const data: SensorReadingCreateDto = JSON.parse(payload);
+    if (topic === MqttTopicsEnum.NOTIFICATIONS) {
+    } else if (topic === MqttTopicsEnum.POLLUTION_DATA) {
+      console.log(message);
+    }
+    //   const payload = message.toString();
+    //   console.log(payload);
+    //   try {
+    //     const data: SensorReadingCreateDto = JSON.parse(payload);
 
-  //     this.notificationService.sendNotification(data);
-  //     console.log('Handled notifications:', payload);
-  //   } catch (error) {
-  //     console.error('Failed to parse message payload:', error);
-  //   }
-  // }
+    //     this.notificationService.sendNotification(data);
+    //     console.log('Handled notifications:', payload);
+    //   } catch (error) {
+    //     console.error('Failed to parse message payload:', error);
+    //   }
+    // }
+  }
 }
