@@ -11,7 +11,9 @@ export class CachingService {
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
-    await this.cacheManager.set(key, value, ttl);
+    if (value) {
+      await this.cacheManager.set(key, value, ttl);
+    }
   }
 
   async del(key: string): Promise<void> {

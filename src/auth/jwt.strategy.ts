@@ -54,7 +54,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         'User does not have access to this resource',
       );
 
-    return true;
+    return { ...validatedUser, userId: validatedUser.id };
   }
 
   private getResourceName = (path: string) => {
