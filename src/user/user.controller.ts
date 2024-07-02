@@ -1,15 +1,17 @@
-import { Controller, Post, Body, Query } from '@nestjs/common';
+import { Controller, Post, Body, Query, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/dtos/create-user.dto';
 import { Public } from 'src/auth/public.decorator';
 import { LoginUserDto } from 'src/dtos/login-user.dto';
 
+@ApiBasicAuth('token')
 @ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  //@Throttle(15, 900) // 15 requests per 15 minutes
   @Public()
   @Post('login')
   async login(@Body() user: LoginUserDto) {
@@ -31,5 +33,10 @@ export class UserController {
   @Post('expo-token')
   async saveExpoToken(@Body('token') token: string) {
     return this.userService.saveExpoToken(token);
+  }
+
+  @Delete(':userId')
+  async deleteUser(@Param('userId') userId: string): Promise<void> {
+    return this.userService.delete(userId);
   }
 }

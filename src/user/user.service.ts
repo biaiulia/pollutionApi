@@ -122,4 +122,19 @@ export class UserService {
     }
     await this.userDal.saveExpoToken(userId, token);
   }
+
+  async getUserDetailsByEmailAndId(
+    userId: string,
+    email: string,
+  ): Promise<Partial<User>> {
+    return this.userDal.findByIdAndEmail(userId, email);
+  }
+
+  async delete(userId: string): Promise<void> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return this.userDal.delete(userId);
+  }
 }

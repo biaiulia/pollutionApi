@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import jwtConfig from './jwt.config';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import jwtConfig from './jwt.config';
       }),
       inject: [ConfigService],
     }),
+    UserModule,
   ],
   providers: [JwtStrategy],
   exports: [JwtModule, PassportModule],

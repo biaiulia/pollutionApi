@@ -82,4 +82,18 @@ export class UserDal {
       },
     });
   }
+
+  async findByIdAndEmail(
+    userId: string,
+    email: string,
+  ): Promise<Partial<User>> {
+    return this.prisma.user.findUnique({
+      where: { id: userId, email },
+      select: { ...USER_SELECTOR, role: true },
+    });
+  }
+
+  async delete(userId: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id: userId } });
+  }
 }
