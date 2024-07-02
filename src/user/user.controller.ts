@@ -6,8 +6,8 @@ import { Public } from 'src/auth/public.decorator';
 import { LoginUserDto } from 'src/dtos/login-user.dto';
 
 @ApiBasicAuth('token')
-@ApiTags('user')
-@Controller('user')
+@ApiTags('users')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

@@ -100,9 +100,9 @@ export class UserService {
       throw new BadRequestException('Invalid credentials');
     }
 
-    if (!user.isEmailVerified) {
-      throw new BadRequestException('Please verify your email');
-    }
+    // if (!user.isEmailVerified) {
+    //   throw new BadRequestException('Please verify your email');
+    // }
 
     const payload = { sub: user.id, email: user.email };
     return {

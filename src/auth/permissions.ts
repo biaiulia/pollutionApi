@@ -15,16 +15,16 @@ export const allMethods = [
 
 export interface Permissions {
   notifications: Methods[];
-  subscription: Methods[];
-  user: Methods[];
+  subscriptions: Methods[];
+  users: Methods[];
   'sensor-readings': Methods[];
   sensors: Methods[];
 }
 
 export const permissionsByRole: { [key: string]: Permissions } = {
   user: {
-    subscription: allMethods,
-    user: [Methods.POST, Methods.GET, Methods.PATCH],
+    subscriptions: allMethods,
+    users: [Methods.POST, Methods.GET, Methods.PATCH],
     'sensor-readings': [Methods.GET],
     sensors: [Methods.GET],
     notifications: [Methods.GET],
@@ -32,8 +32,8 @@ export const permissionsByRole: { [key: string]: Permissions } = {
 
   admin: {
     notifications: allMethods,
-    subscription: allMethods,
-    user: allMethods,
+    subscriptions: allMethods,
+    users: allMethods,
     'sensor-readings': allMethods,
     sensors: allMethods,
   },

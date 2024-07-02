@@ -3,8 +3,8 @@ import { SubscriptionService } from './subscription.service';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiBasicAuth('token')
-@ApiTags('subscription')
-@Controller('subscription')
+@ApiTags('subscriptions')
+@Controller('subscriptions')
 export class SubscriptionController {
   constructor(private subscriptionService: SubscriptionService) {}
 
