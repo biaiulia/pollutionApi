@@ -14,6 +14,10 @@ export class SensorReadingDal {
     });
   }
 
+  async getSensor(sensorId: string) {
+    return this.prisma.sensor.findUnique({ where: { id: sensorId } });
+  }
+
   // async findAllReadings() {
   //   return this.prisma.sensorReading.findMany({
   //     include: {

@@ -18,7 +18,7 @@ export class SubscriptionController {
     return this.subscriptionService.unsubscribe(req.user.userId, sensorId);
   }
 
-  @Get()
+  @Get('subscribed-sensors')
   async getUserSubscriptions(@Request() req) {
     return this.subscriptionService.getUserSubscriptions(req.user.userId);
   }
@@ -26,5 +26,13 @@ export class SubscriptionController {
   @Get(':sensorId')
   async getSensorSubscriptions(@Param('sensorId') sensorId: string) {
     return this.subscriptionService.getUsersSubscribedToSensor(sensorId);
+  }
+
+  @Get(':sensorId/user/:userId')
+  async isUserSubscribedToSensor(
+    @Param('sensorId') sensorId: string,
+    @Param('userId') userId: string,
+  ) {
+    return this.subscriptionService.checkIfUserIsSubscribed(sensorId, userId);
   }
 }

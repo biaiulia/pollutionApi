@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Notification } from 'src/entities/notification.entity';
 
 @Injectable()
 export class NotificationDal {
@@ -15,7 +16,7 @@ export class NotificationDal {
     return this.prisma.notification.findMany();
   }
 
-  async findNotificationsByUserId(userId: string) {
+  async findNotificationsByUserId(userId: string): Promise<Notification[]> {
     return this.prisma.notification.findMany({
       where: { userId },
     });

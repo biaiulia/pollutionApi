@@ -1,14 +1,15 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Request, Get } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBasicAuth('token')
 @ApiTags('notification')
 @Controller('notification')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  // @Post('send')
-  // async sendNotification(@Body() data: any) {
-  //   return this.notificationService.sendNotification(data);
-  // }
+  @Get()
+  async getNotifications(@Request() req) {
+    return this.notificationService.getNotifications(req.user.userId);
+  }
 }

@@ -19,7 +19,6 @@ import { SubscriptionModule } from 'src/subscriptions/subscription.module';
       isGlobal: true,
       load: [jwtConfig],
     }),
-    // GlobalCacheModule,
     UserModule,
     AuthModule,
     MailModule,

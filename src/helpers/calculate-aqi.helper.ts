@@ -1,3 +1,6 @@
+import { AqiColorsEnum } from 'src/enums/aqi-colors.enum';
+import { AqiLevelEnum } from 'src/enums/aqi-level.enum';
+
 export function calculateAqiLevel(pm25: number, pm10: number): string {
   const pm25Levels = {
     Good: 25,
@@ -30,4 +33,15 @@ export function calculateAqiLevel(pm25: number, pm10: number): string {
           ['Good', 'Fair', 'Moderate', 'Poor', 'Very Poor'].indexOf(b),
       )[1]
     : 'Unknown';
+}
+
+export function mapAqiLevelsToColors(aqiLevel: AqiLevelEnum): AqiColorsEnum {
+  const colorsMap: Record<AqiLevelEnum, AqiColorsEnum> = {
+    [AqiLevelEnum.GOOD]: AqiColorsEnum.GREEN,
+    [AqiLevelEnum.FAIR]: AqiColorsEnum.YELLOW,
+    [AqiLevelEnum.MODERATE]: AqiColorsEnum.ORANGE,
+    [AqiLevelEnum.POOR]: AqiColorsEnum.RED,
+    [AqiLevelEnum.VERY_POOR]: AqiColorsEnum.PURPLE,
+  };
+  return colorsMap[aqiLevel];
 }

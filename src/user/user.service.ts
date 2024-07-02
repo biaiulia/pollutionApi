@@ -31,7 +31,7 @@ export class UserService {
     return crypto.createHash('sha256').update(saltedHash).digest('hex');
   }
 
-  async createUser(createUser: CreateUserDto): Promise<Partial<User>> {
+  async register(createUser: CreateUserDto): Promise<Partial<User>> {
     const existingUser = await this.findUserByEmail(createUser.email);
     if (existingUser) {
       throw new BadRequestException('User already exists');
@@ -98,6 +98,10 @@ export class UserService {
 
     if (!user) {
       throw new BadRequestException('Invalid credentials');
+    }
+
+    if (!user.isEmailVerified) {
+      throw new BadRequestException('Please verify your email');
     }
 
     const payload = { sub: user.id, email: user.email };

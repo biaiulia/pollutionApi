@@ -6,19 +6,23 @@ import {
 import { SensorReadingDal } from './sensor-reading.dal';
 import { AirlyService } from '../airly/airly.service';
 import { SensorTypeEnum } from 'src/enums/sensor-type.enum';
-import { SensorService } from 'src/sensors/sensor.service';
 import { SensorReadingQueryParams } from 'src/dtos/sensor-reading-query-params.dto';
 import { isLatestAirlyReading } from 'src/helpers/is-latest-airly-reading.helper';
 import { mapRawDataToSensorReading } from 'src/helpers/map-airly-data.helper';
 import { CachingService } from 'src/redis/caching.service';
 import { SensorReading } from 'src/entities/sensor-reading.entity';
 import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
+import { AqiColorsEnum } from 'src/enums/aqi-colors.enum';
+import {
+  calculateAqiLevel,
+  mapAqiLevelsToColors,
+} from 'src/helpers/calculate-aqi.helper';
+import { AqiLevelEnum } from 'src/enums/aqi-level.enum';
 
 @Injectable()
 export class SensorReadingService {
   constructor(
     private readonly sensorReadingDal: SensorReadingDal,
-    private readonly sensorService: SensorService,
     private readonly airlyService: AirlyService,
     private readonly cachingService: CachingService,
   ) {}
@@ -41,10 +45,9 @@ export class SensorReadingService {
 
   
 
-  /* add somewhere where you can see the historical data in the FE, get all sensor readings by day */
-  //TODO: change naming to handle latestSensor reading
-  async getLatestSensorReading(sensorId: string) {
-    const sensor = await this.sensorService.getSensor(sensorId);
+*/
+  async getLatestSensorReading(sensorId: string): Promise<SensorReading> {
+    const sensor = await this.sensorReadingDal.getSensor(sensorId);
     if (!sensor) {
       throw new NotFoundException(`Sensor with ID ${sensorId} not found`);
     }
@@ -100,7 +103,7 @@ export class SensorReadingService {
     sensorId: string,
     queryParams: SensorReadingQueryParams,
   ) {
-    const sensor = await this.sensorService.getSensor(sensorId);
+    const sensor = await this.sensorReadingDal.getSensor(sensorId);
 
     if (!sensor) {
       throw new NotFoundException(`Sensor with ID ${sensorId} not found`);
@@ -117,5 +120,16 @@ export class SensorReadingService {
       );
     }
     return createdSensorReading;
+  }
+
+  async getLatestAqiLevel(
+    sensorId: string,
+  ): Promise<{ aqiLevel: AqiLevelEnum; aqiColor: AqiColorsEnum }> {
+    const latestReading = await this.getLatestSensorReading(sensorId);
+    const aqiLevel = calculateAqiLevel(
+      latestReading.PM25,
+      latestReading.PM10,
+    ) as AqiLevelEnum;
+    return { aqiLevel, aqiColor: mapAqiLevelsToColors(aqiLevel) };
   }
 }

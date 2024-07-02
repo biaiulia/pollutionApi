@@ -4,6 +4,7 @@ import { SensorDal } from './sensor.dal';
 import { Sensor } from 'src/entities/sensor.entity';
 import { CachingService } from 'src/redis/caching.service';
 import { SensorReadingService } from 'src/sensor-reading/sensor-reading.service';
+// import { SensorReadingService } from 'src/sensor-reading/sensor-reading.service';
 
 @Injectable()
 export class SensorService {
@@ -11,6 +12,7 @@ export class SensorService {
     private readonly sensorDal: SensorDal,
     // private readonly sensorReadingService: SensorReadingService,
     private readonly cachingService: CachingService,
+    private readonly sensorReadingService: SensorReadingService,
   ) {}
 
   async getSensor(sensorId: string): Promise<Sensor> {
@@ -34,13 +36,23 @@ export class SensorService {
     let sensors = await this.cachingService.get<Sensor[]>(cacheKey);
     if (!sensors) {
       sensors = await this.sensorDal.findAll();
-      await this.cachingService.set(cacheKey, sensors);
+      if (sensors) {
+        await this.cachingService.set(cacheKey, sensors);
+      }
     }
-    sensors[0].color = 'green';
-    sensors[1].color = 'yellow';
-    sensors[2].color = 'orange';
-    sensors[3].color = 'red';
 
-    return sensors.map((sensor) => ({ ...sensor, color: 'green' }));
+    const mappedSensors = await Promise.all(
+      sensors.map(async (sensor) => {
+        const { aqiLevel, aqiColor } =
+          await this.sensorReadingService.getLatestAqiLevel(sensor.id);
+        return {
+          ...sensor,
+          aqiLevel,
+          aqiColor,
+        };
+      }),
+    );
+
+    return mappedSensors;
   }
 }
