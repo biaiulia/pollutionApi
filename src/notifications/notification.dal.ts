@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Notification } from 'src/entities/notification.entity';
+import { CreateNotificationDto } from 'src/dtos/create-notification-dto';
 
 @Injectable()
 export class NotificationDal {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createNotification(data: any) {
+  async createNotification(notification: CreateNotificationDto) {
     return this.prisma.notification.create({
-      data,
+      data: notification as Notification,
     });
   }
 

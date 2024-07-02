@@ -29,7 +29,7 @@ export class MqttService {
     });
 
     this.client.on('connect', () => {
-      console.log('MQTT connected');
+      this.logger.log('MQTT connected');
     });
 
     this.client.on('error', (error) => {
@@ -60,7 +60,7 @@ export class MqttService {
     });
   }
 
-  private handleMessage(topic: string, message: Buffer) {
+  private async handleMessage(topic: string, message: Buffer) {
     const messageString = message.toString();
     try {
       const parsedData = JSON.parse(messageString);
@@ -68,22 +68,35 @@ export class MqttService {
         throw new BadRequestException(`Empty mqtt message on topic ${topic}`);
       }
       if (topic === MqttTopicsEnum.NOTIFICATIONS) {
-        this.handleNotificationMessage(parsedData);
+        await this.handleNotificationMessage(parsedData);
       } else if (topic === MqttTopicsEnum.POLLUTION_DATA) {
-        this.handlePollutionDataMessage(parsedData);
+        await this.handlePollutionDataMessage(parsedData);
       }
     } catch (error) {
       this.logger.error('Failed to parse message payload:', error);
     }
   }
 
-  private handleNotificationMessage(parsedData: { message: string; data }) {
+  private async handleNotificationMessage(parsedData: {
+    message: string;
+    data;
+  }) {
+    // TODO: CHange day and get date from mqtt
     const { message, data } = parsedData;
     if (message && data) {
       // Handle the notification message, e.g., log it or send a notification
       this.logger.log('Notification received:', message, data);
-      // Implement your notification handling logic here
-      this.notificationService.sendNotification(message, data);
+      const createdSensorReading =
+        await this.sensorReadingService.createSensorReading({
+          ...data,
+          sensorId: 'edge1',
+          dateTime: new Date(),
+          dayOfWeek: 'Wednesday',
+        });
+      await this.notificationService.sendNotification(
+        message,
+        createdSensorReading,
+      );
     } else {
       this.logger.error('Invalid notification message format');
     }

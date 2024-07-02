@@ -30,7 +30,6 @@ export class SensorService {
     return sensor;
   }
 
-  // todo delete this abomination
   async getSensors(): Promise<any[]> {
     const cacheKey = `sensors`;
     let sensors = await this.cachingService.get<Sensor[]>(cacheKey);
