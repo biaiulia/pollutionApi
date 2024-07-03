@@ -23,8 +23,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
     ThrottlerModule.forRoot([
       {
-        ttl: 30, // 15 minutes
-        limit: 2, // 100 requests
+        ttl: 900, // 15 minutes
+        limit: 100, // 100 requests
       },
     ]),
     UserModule,

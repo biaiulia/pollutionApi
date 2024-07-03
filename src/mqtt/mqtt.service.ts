@@ -6,11 +6,6 @@ import { MqttTopicsEnum } from 'src/enums/mqtt-topics.enum';
 import { NotificationService } from 'src/notifications/notification.service';
 import { SensorReadingService } from 'src/sensor-reading/sensor-reading.service';
 
-/* when mqtt service pushes the mqtt data because data change flow:
-  1. add sensor readings in db and invalidate redis cache add the new one
-  2. send notification
-  */
-
 @Injectable()
 export class MqttService {
   private client: MqttClient;
@@ -21,7 +16,6 @@ export class MqttService {
     private readonly logger: Logger,
   ) {
     this.client = mqtt.connect('mqtts://localhost:8883', {
-      // Update with your actual paths and settings
       ca: process.env.MQTT_CA_CERT,
       cert: process.env.MQTT_CLIENT_CERT,
       key: process.env.MQTT_CLIENT_KEY,
@@ -83,7 +77,6 @@ export class MqttService {
   }) {
     const { message, data } = parsedData;
     if (message && data) {
-      // Handle the notification message, e.g., log it or send a notification
       this.logger.log('Notification received:', message, data);
       const daysOfWeek = [
         'Sunday',
