@@ -15,4 +15,8 @@ export class SensorDal {
   async findAll(): Promise<Sensor[]> {
     return this.prisma.sensor.findMany();
   }
+
+  async create(sensor: Sensor): Promise<Sensor> {
+    return this.prisma.sensor.create({ data: sensor });
+  }
 }

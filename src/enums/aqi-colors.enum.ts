@@ -4,4 +4,5 @@ export enum AqiColorsEnum {
   ORANGE = 'orange',
   RED = 'red',
   PURPLE = 'purple',
+  GREY = 'grey',
 }

@@ -12,7 +12,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { SensorModule } from 'src/sensors/sensor.module';
 import { SubscriptionModule } from 'src/subscriptions/subscription.module';
-// import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -21,12 +21,12 @@ import { SubscriptionModule } from 'src/subscriptions/subscription.module';
       load: [jwtConfig],
     }),
 
-    // ThrottlerModule.forRoot([
-    //   {
-    //     ttl: 30, // 15 minutes
-    //     limit: 2, // 100 requests
-    //   },
-    // ]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 30, // 15 minutes
+        limit: 2, // 100 requests
+      },
+    ]),
     UserModule,
     AuthModule,
     MailModule,
@@ -42,10 +42,10 @@ import { SubscriptionModule } from 'src/subscriptions/subscription.module';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: ThrottlerGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     Reflector,
   ],
 })

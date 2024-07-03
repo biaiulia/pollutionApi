@@ -22,11 +22,10 @@ model User {
 model Sensor {
   id          String   @id @default(uuid())
   type        String
-  originalId  String
   location    String
   latitude    Float
-  longitude   Float
   title       String
+  longitude   Float
   readings    SensorReading[]
   subscriptions Subscription[]
 }
@@ -36,8 +35,8 @@ model Subscription {
   id       String @id @default(uuid())
   userId   String
   sensorId String
-  user     User   @relation(fields: [userId], references: [id])
-  sensor   Sensor @relation(fields: [sensorId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sensor   Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
@@ -46,7 +45,7 @@ model Notification {
   message   String
   dateTime  DateTime
   isRead    Boolean
-  user      User   @relation(fields: [userId], references: [id])
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SensorReading {
@@ -61,5 +60,5 @@ model SensorReading {
   dayOfWeek   String
   aqiLevel    String?
   sensorId    String
-  sensor      Sensor   @relation(fields: [sensorId], references: [id])
+  sensor      Sensor   @relation(fields: [sensorId], references: [id], onDelete: Cascade)
 }
