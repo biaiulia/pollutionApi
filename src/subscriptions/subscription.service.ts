@@ -10,7 +10,7 @@ import { SensorService } from 'src/sensors/sensor.service';
 @Injectable()
 export class SubscriptionService {
   constructor(
-    private subscriptionDal: SubscriptionDal,
+    private readonly subscriptionDal: SubscriptionDal,
     private readonly sensorService: SensorService,
   ) {}
 
@@ -55,7 +55,6 @@ export class SubscriptionService {
     sensorId: string,
     userId: string,
   ): Promise<boolean> {
-    console.log(this.subscriptionDal.isSubscribed(sensorId, userId));
     const subscription = await this.subscriptionDal.isSubscribed(
       sensorId,
       userId,

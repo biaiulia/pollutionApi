@@ -3,19 +3,21 @@ import { AqiLevelEnum } from 'src/enums/aqi-level.enum';
 
 export function calculateAqiLevel(pm25: number, pm10: number): string {
   const pm25Levels = {
-    Good: 25,
-    Fair: 50,
-    Moderate: 90,
-    Poor: 180,
-    'Very Poor': Infinity,
+    Good: 10,
+    Fair: 20,
+    Moderate: 25,
+    Poor: 50,
+    'Very Poor': 75,
+    'Extremely Poor': 800,
   };
 
   const pm10Levels = {
-    Good: 50,
-    Fair: 100,
-    Moderate: 250,
-    Poor: 350,
-    'Very Poor': Infinity,
+    Good: 20,
+    Fair: 40,
+    Moderate: 50,
+    Poor: 100,
+    'Very Poor': 150,
+    'Extremely Poor': 1200,
   };
 
   const pm25Level = Object.keys(pm25Levels).find(
@@ -29,8 +31,22 @@ export function calculateAqiLevel(pm25: number, pm10: number): string {
   return pm25Level && pm10Level
     ? [pm25Level, pm10Level].sort(
         (a, b) =>
-          ['Good', 'Fair', 'Moderate', 'Poor', 'Very Poor'].indexOf(a) -
-          ['Good', 'Fair', 'Moderate', 'Poor', 'Very Poor'].indexOf(b),
+          [
+            'Good',
+            'Fair',
+            'Moderate',
+            'Poor',
+            'Very Poor',
+            'Extremely Poor',
+          ].indexOf(a) -
+          [
+            'Good',
+            'Fair',
+            'Moderate',
+            'Poor',
+            'Very Poor',
+            'Extremely Poor',
+          ].indexOf(b),
       )[1]
     : 'Unknown';
 }
@@ -41,6 +57,7 @@ export function mapAqiLevelsToColors(aqiLevel: AqiLevelEnum): AqiColorsEnum {
     [AqiLevelEnum.FAIR]: AqiColorsEnum.YELLOW,
     [AqiLevelEnum.MODERATE]: AqiColorsEnum.ORANGE,
     [AqiLevelEnum.POOR]: AqiColorsEnum.RED,
+    [AqiLevelEnum.EXTREMELY_POOR]: AqiColorsEnum.RED,
     [AqiLevelEnum.VERY_POOR]: AqiColorsEnum.PURPLE,
   };
   return colorsMap[aqiLevel];

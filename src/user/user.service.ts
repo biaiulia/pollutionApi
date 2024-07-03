@@ -11,6 +11,7 @@ import { UserDal } from './user.dal';
 import { User } from '../entities/user.entity';
 import { MailService } from '../mail/mail.service';
 import { CreateUserDto } from 'src/dtos/create-user.dto';
+import { encryptData } from 'src/helpers/encryption.helper';
 
 @Injectable()
 export class UserService {
@@ -38,7 +39,7 @@ export class UserService {
     }
     const hashedPassword = this.hashPassword(createUser.password);
     const user = await this.userDal.createUser(
-      createUser.email,
+      createUser.email.toLowerCase(),
       hashedPassword,
     );
 
@@ -110,9 +111,8 @@ export class UserService {
     };
   }
 
-  async saveExpoToken(token: string): Promise<void> {
-    const decodedToken = this.jwtService.decode(token);
-    const userId = decodedToken.sub;
+  async saveExpoToken(userId: string, token: string): Promise<void> {
+    console.log(token);
     if (!userId) {
       throw new UnauthorizedException('Invalid token');
     }
@@ -120,7 +120,8 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.userDal.saveExpoToken(userId, token);
+    const encryptedToken = encryptData(token);
+    await this.userDal.saveExpoToken(userId, encryptedToken);
   }
 
   async getUserDetailsByEmailAndId(

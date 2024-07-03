@@ -28,8 +28,7 @@ export function mapRawDataToSensorReading(
   const mappedData: Partial<SensorReadingCreateDto> = {
     sensorId,
     dateTime: date,
-    //TODO: add day of week
-    dayOfWeek: dayNames[1],
+    dayOfWeek: dayNames[new Date().getDay()],
   };
 
   rawData.forEach((dataItem) => {

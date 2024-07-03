@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SensorReadingCreateDto } from 'src/dtos/sensor-reading-create.dto';
 import { SensorReadingQueryParams } from 'src/dtos/sensor-reading-query-params.dto';
-import { SensorReading } from '@prisma/client';
+import { SensorReading } from 'src/entities/sensor-reading.entity';
 
 @Injectable()
 export class SensorReadingDal {

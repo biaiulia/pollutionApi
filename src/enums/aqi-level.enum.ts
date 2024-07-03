@@ -4,4 +4,5 @@ export enum AqiLevelEnum {
   MODERATE = 'Moderate',
   POOR = 'Poor',
   VERY_POOR = 'Very Poor',
+  EXTREMELY_POOR = 'Extremely Poor',
 }

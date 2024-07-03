@@ -57,7 +57,7 @@ model SensorReading {
   temperature Float?
   humidity    Float?
   pressure    Float?
-  dayOfWeek   String
+  dayOfWeek   String?
   aqiLevel    String?
   sensorId    String
   sensor      Sensor   @relation(fields: [sensorId], references: [id], onDelete: Cascade)

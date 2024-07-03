@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { SensorReadingDal } from './sensor-reading.dal';
 import { AirlyService } from '../airly/airly.service';
@@ -18,6 +20,7 @@ import {
   mapAqiLevelsToColors,
 } from 'src/helpers/calculate-aqi.helper';
 import { AqiLevelEnum } from 'src/enums/aqi-level.enum';
+import { NotificationService } from 'src/notifications/notification.service';
 
 @Injectable()
 export class SensorReadingService {
@@ -25,28 +28,13 @@ export class SensorReadingService {
     private readonly sensorReadingDal: SensorReadingDal,
     private readonly airlyService: AirlyService,
     private readonly cachingService: CachingService,
+    @Inject(forwardRef(() => NotificationService))
+    private readonly notificationsService: NotificationService,
   ) {}
 
-  /* flow for this service:
-
-  1. get sensor
-  2. if type = airly check reading for this hour from redis or from db - 
-  if it doesn't exist - get from airly with airlyservice.getDataFromAirly(sensorId) -
-   latest reading and insert into db and redis cache
-  3. if edge node - get latest from redis cache or db
-  */
-
-  /* when mqtt service pushes the mqtt data because data change flow:
-  1. add sensor readings in db and invalidate redis cache add the new one
-  2. send notification
-  */
-
-  /* when mqtt publishes the new historical data invalidate cache and save to db
-
-  
-
-*/
-  async getLatestSensorReading(sensorId: string): Promise<SensorReading> {
+  async getLatestSensorReading(
+    sensorId: string,
+  ): Promise<SensorReading | null> {
     const sensor = await this.sensorReadingDal.getSensor(sensorId);
     if (!sensor) {
       throw new NotFoundException(`Sensor with ID ${sensorId} not found`);
@@ -55,46 +43,75 @@ export class SensorReadingService {
     const latestCachedReading =
       await this.cachingService.get<SensorReading>(cachingKey);
 
-    if (sensor.type === SensorTypeEnum.AIRLY) {
-      if (
-        !latestCachedReading ||
-        !isLatestAirlyReading(latestCachedReading.dateTime.toString())
-      ) {
-        const airlyData = await this.airlyService.getDataFromAirly(sensorId);
-
-        if (!airlyData.current || !airlyData.current.values.length) {
-          throw new NotFoundException(
-            `Data for sensor with id ${sensorId} not found`,
-          );
-        }
-
-        const mappedData = mapRawDataToSensorReading(
-          sensorId,
-          airlyData.current.values,
-          airlyData.current.tillDateTime ?? airlyData.current.fromDateTime,
-        );
-        const createdSensorReading =
-          await this.sensorReadingDal.create(mappedData);
-        if (!createdSensorReading) {
-          console.error('couldn`t create');
-        }
-
-        await this.cachingService.set<SensorReading>(
-          cachingKey,
-          createdSensorReading,
-        );
-
-        return createdSensorReading;
+    if (
+      sensor.type === SensorTypeEnum.AIRLY ||
+      sensor.type === SensorTypeEnum.NATIONAL
+    ) {
+      const newData = await this.handleAirlySensor(
+        sensorId,
+        latestCachedReading,
+        cachingKey,
+      );
+      if (!newData) {
+        return null;
       }
+      if (
+        latestCachedReading &&
+        newData.aqiLevel &&
+        newData.aqiLevel !== latestCachedReading.aqiLevel
+      ) {
+        await this.notificationsService.sendNotification(
+          `AQI Level Changed for sensor ${newData.sensorId}: ${newData.aqiLevel}`,
+          newData,
+        );
+      }
+      return newData;
     }
 
     if (!latestCachedReading) {
       const latestReading =
         await this.sensorReadingDal.getLatestReading(sensorId);
       if (latestReading) {
-        this.cachingService.set<SensorReading>(cachingKey, latestReading, 3600);
+        await this.cachingService.set<SensorReading>(
+          cachingKey,
+          latestReading,
+          3600,
+        );
       }
       return latestReading;
+    }
+    return latestCachedReading;
+  }
+
+  private async handleAirlySensor(
+    sensorId: string,
+    latestCachedReading: SensorReading | null,
+    cachingKey: string,
+  ): Promise<SensorReading | null> {
+    if (
+      !latestCachedReading ||
+      !isLatestAirlyReading(latestCachedReading.dateTime.toString())
+    ) {
+      const airlyData = await this.airlyService.getDataFromAirly(sensorId);
+
+      if (!airlyData?.current || !airlyData?.current?.values?.length) {
+        return null;
+      }
+
+      const mappedData = mapRawDataToSensorReading(
+        sensorId,
+        airlyData.current.values,
+        airlyData.current.tillDateTime ?? airlyData.current.fromDateTime,
+      );
+      const createdSensorReading =
+        await this.sensorReadingDal.create(mappedData);
+      await this.cachingService.set<SensorReading>(
+        cachingKey,
+        createdSensorReading,
+        5400,
+      );
+
+      return createdSensorReading;
     }
     return latestCachedReading;
   }
@@ -102,30 +119,40 @@ export class SensorReadingService {
   async getSensorReadings(
     sensorId: string,
     queryParams: SensorReadingQueryParams,
-  ) {
+  ): Promise<SensorReading[]> {
     const sensor = await this.sensorReadingDal.getSensor(sensorId);
-
     if (!sensor) {
       throw new NotFoundException(`Sensor with ID ${sensorId} not found`);
     }
     return this.sensorReadingDal.getReadingsBySensorId(sensorId, queryParams);
   }
 
-  async createSensorReading(sensorReading: SensorReadingCreateDto) {
+  async createSensorReading(
+    sensorReading: SensorReadingCreateDto,
+  ): Promise<SensorReading> {
     const createdSensorReading =
       await this.sensorReadingDal.create(sensorReading);
-    if (!sensorReading) {
+    if (!createdSensorReading) {
       throw new BadRequestException(
         `Could not add reading for sensor with id ${sensorReading.sensorId} for date ${sensorReading.dateTime}`,
       );
     }
+    await this.invalidateCache(sensorReading.sensorId);
     return createdSensorReading;
+  }
+
+  private async invalidateCache(sensorId: string): Promise<void> {
+    const cacheKey = `sensor-reading:${sensorId}:latest`;
+    await this.cachingService.del(cacheKey);
   }
 
   async getLatestAqiLevel(
     sensorId: string,
   ): Promise<{ aqiLevel: AqiLevelEnum; aqiColor: AqiColorsEnum }> {
     const latestReading = await this.getLatestSensorReading(sensorId);
+    if (!latestReading) {
+      return { aqiLevel: null, aqiColor: AqiColorsEnum.GREY };
+    }
     const aqiLevel = calculateAqiLevel(
       latestReading.PM25,
       latestReading.PM10,

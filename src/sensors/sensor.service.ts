@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { SensorDal } from './sensor.dal';
-
 import { Sensor } from 'src/entities/sensor.entity';
 import { CachingService } from 'src/redis/caching.service';
 import { SensorReadingService } from 'src/sensor-reading/sensor-reading.service';
-// import { SensorReadingService } from 'src/sensor-reading/sensor-reading.service';
+import { sensorSeedData } from 'src/prisma/seed';
 
 @Injectable()
 export class SensorService {
   constructor(
     private readonly sensorDal: SensorDal,
-    // private readonly sensorReadingService: SensorReadingService,
     private readonly cachingService: CachingService,
     private readonly sensorReadingService: SensorReadingService,
   ) {}
@@ -35,12 +33,26 @@ export class SensorService {
     let sensors = await this.cachingService.get<Sensor[]>(cacheKey);
     if (!sensors) {
       sensors = await this.sensorDal.findAll();
-      if (sensors) {
-        await this.cachingService.set(cacheKey, sensors);
-      }
+    }
+    if (!sensors.length) {
+      await this.seedSensors();
+      sensors = await this.sensorDal.findAll();
+      await this.cachingService.set(cacheKey, sensors);
     }
 
-    const mappedSensors = await Promise.all(
+    return this.mapSensorsWithAqi(sensors);
+  }
+
+  private async seedSensors(): Promise<void> {
+    await Promise.all(
+      sensorSeedData.map((sensor) => {
+        this.sensorDal.create(sensor);
+      }),
+    );
+  }
+
+  private async mapSensorsWithAqi(sensors: Sensor[]): Promise<any[]> {
+    const sensorReadings = await Promise.all(
       sensors.map(async (sensor) => {
         const { aqiLevel, aqiColor } =
           await this.sensorReadingService.getLatestAqiLevel(sensor.id);
@@ -51,7 +63,6 @@ export class SensorService {
         };
       }),
     );
-
-    return mappedSensors;
+    return sensorReadings;
   }
 }

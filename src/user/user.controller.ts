@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Query, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Query,
+  Param,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/dtos/create-user.dto';
@@ -31,8 +39,9 @@ export class UserController {
   }
 
   @Post('expo-token')
-  async saveExpoToken(@Body('token') token: string) {
-    return this.userService.saveExpoToken(token);
+  async saveExpoToken(@Req() req, @Body('token') token: string) {
+    const userId = req.user.id;
+    await this.userService.saveExpoToken(userId, token);
   }
 
   @Delete(':userId')

@@ -86,12 +86,22 @@ export class MqttService {
     if (message && data) {
       // Handle the notification message, e.g., log it or send a notification
       this.logger.log('Notification received:', message, data);
+      const daysOfWeek = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ];
+
       const createdSensorReading =
         await this.sensorReadingService.createSensorReading({
           ...data,
           sensorId: 'edge1',
           dateTime: new Date(),
-          dayOfWeek: 'Wednesday',
+          dayOfWeek: daysOfWeek[new Date().getDay()],
         });
       await this.notificationService.sendNotification(
         message,
