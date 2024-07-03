@@ -46,7 +46,6 @@ export class SensorReadingDal {
     });
   }
 
-  // TODO: add types
   async getLatestReading(sensorId: string): Promise<any> {
     return this.prisma.sensorReading.findFirst({
       where: { sensorId },

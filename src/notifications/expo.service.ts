@@ -9,7 +9,6 @@ export class ExpoService {
     this.expo = new Expo();
   }
 
-  //TODO: see with notifications
   async sendPushNotification(token: string, message: string, data?: any) {
     const messages: ExpoPushMessage[] = [
       {

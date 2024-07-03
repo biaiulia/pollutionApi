@@ -112,7 +112,6 @@ export class UserService {
   }
 
   async saveExpoToken(userId: string, token: string): Promise<void> {
-    console.log(token);
     if (!userId) {
       throw new UnauthorizedException('Invalid token');
     }

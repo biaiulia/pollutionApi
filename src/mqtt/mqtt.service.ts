@@ -81,7 +81,6 @@ export class MqttService {
     message: string;
     data;
   }) {
-    // TODO: CHange day and get date from mqtt
     const { message, data } = parsedData;
     if (message && data) {
       // Handle the notification message, e.g., log it or send a notification
